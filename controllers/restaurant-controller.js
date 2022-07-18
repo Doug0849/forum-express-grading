@@ -1,4 +1,4 @@
-const { Restaurant, Category, Comment, User, Favorite } = require('../models')
+const { Restaurant, Category, Comment, User } = require('../models')
 const { getOffset, getPagination } = require('../helpers/pagination-helper')
 
 const restaurantController = {
@@ -87,7 +87,6 @@ const restaurantController = {
   getTopRestaurants: async (req, res, next) => {
     try {
       let restaurants = await Restaurant.findAll({
-        limit: 10,
         include: [{ model: User, as: 'FavoritedUsers' }]
       })
       const FavoritedRestaurants = req.user ? req.user.FavoritedRestaurants : []
@@ -97,6 +96,7 @@ const restaurantController = {
         isFavorited: FavoritedRestaurants.some(fr => fr.id === restaurant.id)
       }))
       await restaurants.sort((a, b) => b.favoritedCount - a.favoritedCount)
+      restaurants.splice(10)
       return res.render('top-restaurants', { restaurants })
     } catch (error) {
       next(error)
