@@ -1,4 +1,4 @@
-const { Restaurant, Category, Comment, User } = require('../models')
+const { Restaurant, Category, Comment, User, Followship } = require('../models')
 const { getOffset, getPagination } = require('../helpers/pagination-helper')
 
 const restaurantController = {
@@ -56,7 +56,7 @@ const restaurantController = {
   },
   getDashboard: (req, res, next) => {
     return Restaurant.findByPk(req.params.id, {
-      include: [Category, Comment]
+      include: [Category, Comment, { model: User, as: 'FavoritedUsers' }]
     }).then(restaurant => {
       if (!restaurant) throw new Error("Restaurant didn't exist!")
       return res.render('dashboard', { restaurant: restaurant.toJSON() })
@@ -92,6 +92,7 @@ const restaurantController = {
       const FavoritedRestaurants = req.user ? req.user.FavoritedRestaurants : []
       restaurants = await restaurants.map(restaurant => ({
         ...restaurant.toJSON(),
+        description: restaurant.description.substring(0, 50),
         favoritedCount: restaurant.FavoritedUsers.length,
         isFavorited: FavoritedRestaurants.some(fr => fr.id === restaurant.id)
       }))
